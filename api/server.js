@@ -5,12 +5,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs'); // <-- IMPORTANT: Add bcryptjs
 const serverless = require('serverless-http');
 require('dotenv').config();
 
 // Import Mongoose models
 const Team = require('./models/Team');
 const Settings = require('./models/Settings');
+const Admin = require('./models/Admin'); // <-- Your new Admin model
 
 // =======================================================
 //  App Initialization
@@ -81,16 +83,34 @@ router.post('/register', async (req, res) => {
     }
 });
 
-router.post('/admin/login', (req, res) => {
-    const { username, password } = req.body;
-    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
-        const token = jwt.sign({ username: username }, process.env.JWT_SECRET, { expiresIn: '8h' });
+// --- NEW DATABASE-DRIVEN LOGIN ROUTE ---
+router.post('/admin/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // 1. Find the admin user in the database
+        const admin = await Admin.findOne({ username: username });
+        if (!admin) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // 2. Compare the provided password with the stored hash
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // 3. If passwords match, create and send the token
+        const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ success: true, token: token });
-    } else {
-        res.status(401).json({ success: false, message: 'Invalid credentials' });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ success: false, message: 'Server error during login.' });
     }
 });
 
+// --- OTHER ADMIN ROUTES ---
 router.get('/admin/teams', protect, async (req, res) => {
     try {
         const teams = await Team.find().sort({ registrationDate: -1 });
