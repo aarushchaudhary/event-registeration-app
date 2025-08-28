@@ -6,25 +6,33 @@ const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // Loads environment variables from a .env file
+const serverless = require('serverless-http'); // Required for Netlify Functions
+require('dotenv').config();
 
 // Import Mongoose models
 const Team = require('./models/Team');
 const Settings = require('./models/Settings');
 
 // =======================================================
-//  App Initialization & Middleware
+//  App Initialization
 // =======================================================
 const app = express();
-const port = process.env.PORT || 3000;
+const router = express.Router(); // Use an Express router
 
-app.use(cors()); // Enable Cross-Origin Resource Sharing
-app.use(express.json()); // Allow the server to accept JSON in request bodies
-app.use(express.static(path.join(__dirname, '../public'))); // Serve static files correctly
+// =======================================================
+//  Middleware
+// =======================================================
+app.use(cors());
+app.use(express.json());
+// Note: Serving static files from the function is not standard for Netlify.
+// The public folder should be served directly by Netlify's CDN.
+// This line can be removed if your netlify.toml is set up correctly, but is harmless.
+app.use(express.static(path.join(__dirname, '../public')));
 
 // =======================================================
 //  Database Connection
 // =======================================================
+// It's recommended to connect inside the handler for serverless, but for simplicity, we'll connect once.
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected successfully.'))
     .catch(err => console.error('MongoDB connection error:', err));
@@ -50,11 +58,11 @@ const protect = (req, res, next) => {
 };
 
 // =======================================================
-//  Public API Routes
+//  API Routes (defined on the router)
 // =======================================================
 
-// GET endpoint to provide stats and settings for the homepage
-app.get('/api/stats', async (req, res) => {
+// --- Public Routes ---
+router.get('/stats', async (req, res) => {
     try {
         const settings = await Settings.findOne({ singleton: 'main' }) || { maxTeams: 50, membersPerTeam: 3 };
         const registeredTeamsCount = await Team.countDocuments();
@@ -64,15 +72,14 @@ app.get('/api/stats', async (req, res) => {
             teamsRegistered: registeredTeamsCount,
             seatsEmpty: seatsEmpty < 0 ? 0 : seatsEmpty,
             totalSeats: settings.maxTeams,
-            membersPerTeam: settings.membersPerTeam // This provides the team size to the frontend
+            membersPerTeam: settings.membersPerTeam
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching stats', error: error.message });
     }
 });
 
-// POST endpoint for new team registrations
-app.post('/api/register', async (req, res) => {
+router.post('/register', async (req, res) => {
     try {
         const newTeam = new Team(req.body);
         await newTeam.save();
@@ -82,19 +89,9 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// =======================================================
-//  Admin API Routes
-// =======================================================
-
-app.post('/api/admin/login', (req, res) => {
+// --- Admin Routes ---
+router.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
-    // --- TEMPORARY DEBUGGING CODE ---
-    console.log('--- LOGIN ATTEMPT ---');
-    console.log('Data from form (Username):', username);
-    console.log('Data from form (Password):', password);
-    console.log('Variable on Server (ADMIN_USER):', process.env.ADMIN_USER);
-    console.log('Variable on Server (ADMIN_PASS):', process.env.ADMIN_PASS);
-    // --- END DEBUG ---
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         const token = jwt.sign({ username: username }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ success: true, token: token });
@@ -103,7 +100,7 @@ app.post('/api/admin/login', (req, res) => {
     }
 });
 
-app.get('/api/admin/teams', protect, async (req, res) => {
+router.get('/admin/teams', protect, async (req, res) => {
     try {
         const teams = await Team.find().sort({ registrationDate: -1 });
         res.json(teams);
@@ -112,7 +109,7 @@ app.get('/api/admin/teams', protect, async (req, res) => {
     }
 });
 
-app.put('/api/admin/teams/:id/approve', protect, async (req, res) => {
+router.put('/admin/teams/:id/approve', protect, async (req, res) => {
     try {
         const team = await Team.findByIdAndUpdate(req.params.id, { status: 'approved' }, { new: true });
         if (!team) return res.status(404).json({ message: 'Team not found' });
@@ -122,7 +119,7 @@ app.put('/api/admin/teams/:id/approve', protect, async (req, res) => {
     }
 });
 
-app.get('/api/admin/settings', protect, async (req, res) => {
+router.get('/admin/settings', protect, async (req, res) => {
     try {
         const settings = await Settings.findOne({ singleton: 'main' }) || {};
         res.json(settings);
@@ -131,7 +128,7 @@ app.get('/api/admin/settings', protect, async (req, res) => {
     }
 });
 
-app.put('/api/admin/settings', protect, async (req, res) => {
+router.put('/admin/settings', protect, async (req, res) => {
     try {
         const { maxTeams, membersPerTeam } = req.body;
         await Settings.findOneAndUpdate({ singleton: 'main' }, { maxTeams, membersPerTeam }, { upsert: true });
@@ -142,8 +139,8 @@ app.put('/api/admin/settings', protect, async (req, res) => {
 });
 
 // =======================================================
-//  Start Server
+//  Netlify Lambda Setup
 // =======================================================
-app.listen(port, () => {
-    console.log(`🚀 Server is running and listening on http://localhost:${port}`);
-});
+app.use('/.netlify/functions/server', router);  // path must match function name
+
+module.exports.handler = serverless(app);
