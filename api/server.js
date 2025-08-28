@@ -82,6 +82,8 @@ router.post('/register', async (req, res) => {
         await newTeam.save();
         res.status(201).json({ message: 'Team registered successfully and is now waitlisted.' });
     } catch (error) {
+        // Add this line to log the full error on the server
+        console.error("REGISTRATION ERROR:", error); 
         res.status(400).json({ message: 'Registration failed. The team name might already be taken.', error: error.message });
     }
 });
