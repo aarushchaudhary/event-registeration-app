@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main style="flex-direction: column; align-items: stretch; padding: 20px;">
+        <div class="manage-container">
+            <h2>Event Settings</h2>
+            <form id="settings-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Max Number of Teams</label>
+                        <input type="number" id="maxTeams" />
+                    </div>
+                    <div class="form-group">
+                        <label>Members per Team</label>
+                        <input type="number" id="membersPerTeam" />
+                    </div>
+                </div>
+                <button type="submit" class="button-red">Save Settings</button>
+            </form>
+        </div>
+
+        <div class="manage-container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Registered Teams</h2>
+                <button id="export-csv-button" class="button-red" style="width: auto; padding: 10px 20px;">
+                    Export to Excel (CSV)
+                </button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th>Team Leader</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="teams-tbody">
+                    </tbody>
+            </table>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+
+    <script src="/js/admin.js"></script>
+    <script src="/js/main.js"></script>
+    
+    <div id="details-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button">&times;</button>
+            <h2 id="modal-team-name">Team Details</h2>
+            <div id="modal-team-details">
+                </div>
+        </div>
+    </div>
+</body>
+</html>

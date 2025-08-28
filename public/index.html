@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeQuest Event</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div class="dashboard-center-content">
+            <div class="welcome-message">
+                Event Countdown: <span id="countdown">[Countdown Timer]</span>
+            </div>
+            
+            <h2>Registration Status</h2>
+            <div class="dashboard-grid" style="max-width: 800px; margin-bottom: 30px;">
+                <div class="dashboard-card card-quizzes">
+                    <div class="card-info">
+                        <p class="card-title">Teams Registered</p>
+                        <p class="card-number" id="teams-registered">0</p>
+                    </div>
+                </div>
+                <div class="dashboard-card card-students">
+                    <div class="card-info">
+                        <p class="card-title">Seats Remaining</p>
+                        <p class="card-number" id="seats-empty">0</p>
+                    </div>
+                </div>
+                 <div class="dashboard-card card-active">
+                    <div class="card-info">
+                        <p class="card-title">Total Seats</p>
+                        <p class="card-number" id="total-seats">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="/register.html" class="button-red">Register Your Team</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="/js/home.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

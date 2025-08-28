@@ -1,0 +1,312 @@
+/* ==========================================================================
+   Final Unified CSS for CodeQuest Event App
+   ========================================================================== */
+
+/* --- 1. Font Imports --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* --- 2. Core Layout & Base Styles --- */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4; 
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* --- 3. Header & Footer --- */
+.ribbon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    color: black;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative; /* Important for centering the title */
+}
+
+.logo-left, .logo-right {
+    height: 40px;
+    width: auto;
+}
+
+.site-title {
+    font-size: 24px;
+    margin: 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between logout button and logo */
+}
+
+.footer {
+    width: 100%;
+    background-color: white;
+    color: black;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    border-top: 1px solid #ccc;
+    flex-shrink: 0;
+}
+
+/* --- 4. Reusable Components (Forms, Buttons) --- */
+.form-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 700px;
+    text-align: left;
+}
+
+.form-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+/* Rule for all input types and select dropdowns */
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    box-sizing: border-box; /* Ensures consistent sizing */
+    font-family: Arial, sans-serif; /* Ensures font consistency */
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.button-red {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #e60000;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none; 
+    display: inline-block;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.button-red:hover {
+    background-color: #cc0000;
+}
+
+#logout-button {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+}
+
+/* --- 5. Page-Specific Layouts (Homepage, Admin) --- */
+.dashboard-center-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.welcome-message {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: black;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin-bottom: 25px;
+}
+
+.manage-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 1200px;
+    text-align: left;
+    margin: 20px;
+}
+
+.manage-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+/* --- 6. Data Display (Cards, Tables, Badges) --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+.dashboard-card {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.dashboard-card .card-info .card-title {
+    font-size: 16px;
+    color: #6c757d;
+    margin: 0 0 5px 0;
+}
+
+.dashboard-card .card-info .card-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.data-table thead th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-transform: capitalize;
+    display: inline-block;
+    text-align: center;
+}
+
+.status-waitlisted { background-color: #007bff; }
+.status-approved { background-color: #28a745; }
+
+/* --- 7. Modal Styles --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex; /* Shown when active */
+}
+
+.modal-content {
+    background: white;
+    color: #333;
+    padding: 30px 40px;
+    border-radius: 15px;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+}
+
+.modal-content .close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #888;
+}
+
+.modal-content .close-button:hover {
+    color: #333;
+}
+
+.modal-content h3 {
+    margin-top: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.modal-content ul li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}

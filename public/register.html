@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register Your Team</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div id="registration-view" class="form-container">
+            <h2>Team Registration</h2>
+            <p id="error-message" style="color: #E91E63; text-align: center;"></p>
+            <form id="registration-form">
+                <div class="form-group">
+                    <label>Team Name</label>
+                    <input type="text" name="teamName" required />
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Team Leader's Name</label>
+                        <input type="text" name="teamLeaderName" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Team Leader's Phone No.</label>
+                        <input type="tel" name="teamLeaderPhone" required />
+                    </div>
+                </div>
+                <hr style="margin: 30px 0;" />
+
+                <div id="member-forms-container"></div>
+
+                <template id="member-form-template">
+                    <div class="member-section">
+                        <h4 class="member-title">Member Details</h4>
+                        <div class="form-row">
+                            <div class="form-group"><label>Full Name</label><input type="text" name="name" required /></div>
+                            <div class="form-group"><label>SAP ID</label><input type="text" name="sapId" required /></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>School</label>
+                                <select name="school" required class="school-select">
+                                    <option value="">-- Select a School --</option>
+                                    <option value="STME">STME</option>
+                                    <option value="SPTM">SPTM</option>
+                                    <option value="SOL">SOL</option>
+                                    <option value="SOC">SOC</option>
+                                    <option value="SBM">SBM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row dynamic-fields-container" style="display: none;">
+                            <div class="form-group">
+                                <label>Course</label>
+                                <select name="course" required class="course-select"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Year</label>
+                                <select name="year" required class="year-select"></select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Email</label><input type="email" name="email" required /></div>
+                            <div class="form-group"><label>Phone No.</label><input type="tel" name="phone" required /></div>
+                        </div>
+                    </div>
+                </template>
+                
+                <button type="submit" class="button-red">Register Team</button>
+            </form>
+        </div>
+
+        <div id="success-view" class="form-container" style="display: none; text-align: center;">
+            <h2>Registration Waitlisted!</h2>
+            <p>Thank you. Your team is now waitlisted for approval.</p>
+            <p>Please complete the payment by scanning the QR code below.</p>
+            <img src="/media/qr-code.png" alt="Payment QR Code" style="max-width: 250px; margin-top: 20px;" />
+            <br><br>
+            <a href="/" class="button-red" style="width: auto;">Back to Home</a>
+        </div>
+    </main>
+    
+    <div id="footer-placeholder"></div>
+
+    <script src="/js/register.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
