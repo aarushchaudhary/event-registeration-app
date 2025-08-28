@@ -1,15 +1,11 @@
 [build]
-  # We don't have a build command for plain HTML/CSS/JS
-  command = "echo 'No build step required'"
-
-  # This is the folder that contains your website's files (index.html, etc.)
   publish = "public"
-
-  # This is the folder containing our backend API function
   functions = "api"
 
-# This rule directs all API calls to our backend function
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
