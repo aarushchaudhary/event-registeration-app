@@ -6,8 +6,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs'); // <-- IMPORTANT: Add bcryptjs
+const path = require('path');
 const serverless = require('serverless-http');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // Import Mongoose models
 const Team = require('./models/Team');
@@ -25,6 +26,8 @@ const router = express.Router();
 // =======================================================
 app.use(cors());
 app.use(express.json());
+// Serve static files locally for development (Netlify will serve /public in production)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // =======================================================
 //  Database Connection
@@ -150,8 +153,17 @@ router.put('/admin/settings', protect, async (req, res) => {
 });
 
 // =======================================================
-//  Netlify Lambda Setup
+//  Routing Setup (Netlify vs Local Dev)
 // =======================================================
-app.use('/.netlify/functions/server', router);
+const isNetlify = !!process.env.NETLIFY || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-module.exports.handler = serverless(app);
+if (isNetlify) {
+    // On Netlify, expose routes under the serverless path
+    app.use('/.netlify/functions/server', router);
+    module.exports.handler = serverless(app);
+} else {
+    // Local development: expose routes at /api and start a server
+    app.use('/api', router);
+    const PORT = process.env.PORT || 8888;
+    app.listen(PORT, () => console.log(`Server running locally at http://localhost:${PORT}`));
+}
