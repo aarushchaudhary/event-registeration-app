@@ -6,7 +6,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const serverless = require('serverless-http'); // Required for Netlify Functions
+const serverless = require('serverless-http');
 require('dotenv').config();
 
 // Import Mongoose models
@@ -17,28 +17,23 @@ const Settings = require('./models/Settings');
 //  App Initialization
 // =======================================================
 const app = express();
-const router = express.Router(); // Use an Express router
+const router = express.Router();
 
 // =======================================================
 //  Middleware
 // =======================================================
 app.use(cors());
 app.use(express.json());
-// Note: Serving static files from the function is not standard for Netlify.
-// The public folder should be served directly by Netlify's CDN.
-// This line can be removed if your netlify.toml is set up correctly, but is harmless.
-app.use(express.static(path.join(__dirname, '../public')));
 
 // =======================================================
 //  Database Connection
 // =======================================================
-// It's recommended to connect inside the handler for serverless, but for simplicity, we'll connect once.
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected successfully.'))
     .catch(err => console.error('MongoDB connection error:', err));
 
 // =======================================================
-//  JWT Middleware for Protecting Admin Routes
+//  JWT Middleware
 // =======================================================
 const protect = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -58,10 +53,8 @@ const protect = (req, res, next) => {
 };
 
 // =======================================================
-//  API Routes (defined on the router)
+//  API Routes
 // =======================================================
-
-// --- Public Routes ---
 router.get('/stats', async (req, res) => {
     try {
         const settings = await Settings.findOne({ singleton: 'main' }) || { maxTeams: 50, membersPerTeam: 3 };
@@ -85,20 +78,12 @@ router.post('/register', async (req, res) => {
         await newTeam.save();
         res.status(201).json({ message: 'Team registered successfully and is now waitlisted.' });
     } catch (error) {
-        res.status(400).json({ message: 'Registration failed. The team name might already be taken.', error: error.message });
+        res.status(400).json({ message: 'Registration failed.', error: error.message });
     }
 });
 
-// --- Admin Routes ---
 router.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
-    // --- TEMPORARY DEBUGGING CODE ---
-    console.log('--- LOGIN ATTEMPT ---');
-    console.log('Data from form (Username):', username);
-    console.log('Data from form (Password):', password);
-    console.log('Variable on Server (ADMIN_USER):', process.env.ADMIN_USER);
-    console.log('Variable on Server (ADMIN_PASS):', process.env.ADMIN_PASS);
-    // --- END DEBUG ---
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         const token = jwt.sign({ username: username }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ success: true, token: token });
@@ -148,6 +133,6 @@ router.put('/admin/settings', protect, async (req, res) => {
 // =======================================================
 //  Netlify Lambda Setup
 // =======================================================
-app.use('/.netlify/functions/server', router);  // path must match function name
+app.use('/.netlify/functions/server', router);
 
 module.exports.handler = serverless(app);
