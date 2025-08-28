@@ -5,7 +5,8 @@ const MemberSchema = new mongoose.Schema({
     sapId: { type: String, required: true },
     school: { type: String, required: true },
     course: { type: String, required: true },
-    year: { type: Number, required: true },
+    // This is the corrected line
+    year: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
 });
