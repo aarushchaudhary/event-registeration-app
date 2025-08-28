@@ -160,10 +160,14 @@ const isNetlify = !!process.env.NETLIFY || !!process.env.AWS_LAMBDA_FUNCTION_NAM
 if (isNetlify) {
     // On Netlify, expose routes under the serverless path
     app.use('/.netlify/functions/server', router);
+    // Also mount at root because Netlify passes the path relative to the function
+    app.use('/', router);
+    // And mount at /api to be resilient to proxies that preserve the /api prefix
+    app.use('/api', router);
     module.exports.handler = serverless(app);
 } else {
     // Local development: expose routes at /api and start a server
     app.use('/api', router);
-    const PORT = process.env.PORT || 8888;
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`Server running locally at http://localhost:${PORT}`));
 }
