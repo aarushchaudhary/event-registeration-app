@@ -92,6 +92,13 @@ router.post('/register', async (req, res) => {
 // --- Admin Routes ---
 router.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
+    // --- TEMPORARY DEBUGGING CODE ---
+    console.log('--- LOGIN ATTEMPT ---');
+    console.log('Data from form (Username):', username);
+    console.log('Data from form (Password):', password);
+    console.log('Variable on Server (ADMIN_USER):', process.env.ADMIN_USER);
+    console.log('Variable on Server (ADMIN_PASS):', process.env.ADMIN_PASS);
+    // --- END DEBUG ---
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         const token = jwt.sign({ username: username }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ success: true, token: token });
