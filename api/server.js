@@ -2,7 +2,6 @@
 //  Imports
 // =======================================================
 const express = require('express');
-const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -78,7 +77,7 @@ router.post('/register', async (req, res) => {
         await newTeam.save();
         res.status(201).json({ message: 'Team registered successfully and is now waitlisted.' });
     } catch (error) {
-        res.status(400).json({ message: 'Registration failed.', error: error.message });
+        res.status(400).json({ message: 'Registration failed. The team name might already be taken.', error: error.message });
     }
 });
 
