@@ -1,11 +1,24 @@
+# This section tells Netlify how to build your site
 [build]
-  publish = "public"
-  functions = "api"
+  # Base directory: Change into this directory before building.
+  # This makes Netlify work from your `api` folder.
+  base = "api"
 
+  # Publish directory: Relative to the base directory.
+  # Go up one level (../) from 'api' to find the 'public' folder.
+  publish = "../public"
+
+  # Functions directory: Relative to the base directory.
+  # The functions are in the current folder ('.') which is now 'api'.
+  functions = "."
+
+# This plugin is no longer needed when a base directory is set,
+# but it's harmless to leave it.
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+# This rule makes sure your API calls work correctly on Netlify
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
-
-[[plugins]]
-  package = "@netlify/plugin-functions-install-core"
