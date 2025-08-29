@@ -39,21 +39,27 @@ mongoose.connect(process.env.MONGO_URI)
 // =======================================================
 //  JWT Middleware
 // =======================================================
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+    if (token == null) return res.status(401).json({ message: 'Unauthorized' });
 
-    if (token == null) {
-        return res.status(401).json({ message: 'Unauthorized: No token provided' });
-    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Find the admin user from the token's payload
+        const admin = await Admin.findById(decoded.id);
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({ message: 'Forbidden: Token is not valid' });
+        // Check if the user exists and if the token matches the active session token
+        if (!admin || admin.activeSessionToken !== token) {
+            return res.status(401).json({ message: 'Unauthorized: Session is invalid.' });
         }
-        req.user = user;
+
+        req.user = decoded;
         next();
-    });
+    } catch (err) {
+        return res.status(403).json({ message: 'Forbidden: Token is not valid' });
+    }
 };
 
 // =======================================================
@@ -101,22 +107,25 @@ router.post('/register', async (req, res) => {
 router.post('/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-
-        // 1. Find the admin user in the database
-        const admin = await Admin.findOne({ username: username });
+        const admin = await Admin.findOne({ username });
         if (!admin) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // 2. Compare the provided password with the stored hash
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // 3. If passwords match, create and send the token
+        // 1. Create a new token
         const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '8h' });
-        res.json({ success: true, token: token });
+
+        // 2. Save the new token as the only active session
+        admin.activeSessionToken = token;
+        await admin.save();
+
+        // 3. Send the new token to the user
+        res.json({ success: true, token });
 
     } catch (error) {
         console.error('Login error:', error);

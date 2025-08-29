@@ -10,6 +10,11 @@ const AdminSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    // This field will store the only valid token for the user
+    activeSessionToken: {
+        type: String,
+        default: null
     }
 });
 
