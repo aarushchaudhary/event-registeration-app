@@ -5,7 +5,6 @@ const MemberSchema = new mongoose.Schema({
     sapId: { type: String, required: true },
     school: { type: String, required: true },
     course: { type: String, required: true },
-    // This is the corrected line
     year: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
@@ -15,6 +14,7 @@ const TeamSchema = new mongoose.Schema({
     teamName: { type: String, required: true, unique: true },
     teamLeaderName: { type: String, required: true },
     teamLeaderPhone: { type: String, required: true },
+    transactionId: { type: String, required: true, unique: true }, // <-- ADD THIS LINE
     members: [MemberSchema],
     status: {
         type: String,

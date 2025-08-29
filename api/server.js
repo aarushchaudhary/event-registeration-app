@@ -61,30 +61,39 @@ const protect = (req, res, next) => {
 // =======================================================
 router.get('/stats', async (req, res) => {
     try {
-        const settings = await Settings.findOne({ singleton: 'main' }) || { maxTeams: 50, membersPerTeam: 3 };
-        const registeredTeamsCount = await Team.countDocuments();
-        const seatsEmpty = settings.maxTeams - registeredTeamsCount;
+        const settings = await Settings.findOne({ singleton: 'main' }) || { maxTeams: 50, membersPerTeam: 3, paymentRequired: true };
+        const approvedTeamsCount = await Team.countDocuments({ status: 'approved' });
+        const seatsEmpty = settings.maxTeams - approvedTeamsCount;
 
         res.json({
-            teamsRegistered: registeredTeamsCount,
+            teamsRegistered: approvedTeamsCount,
             seatsEmpty: seatsEmpty < 0 ? 0 : seatsEmpty,
             totalSeats: settings.maxTeams,
-            membersPerTeam: settings.membersPerTeam
+            membersPerTeam: settings.membersPerTeam,
+            paymentRequired: settings.paymentRequired // <-- ADD THIS LINE
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching stats', error: error.message });
     }
 });
 
+// --- UPDATED to conditionally require transactionId ---
 router.post('/register', async (req, res) => {
     try {
-        const newTeam = new Team(req.body);
+        const settings = await Settings.findOne({ singleton: 'main' }) || { paymentRequired: true };
+        const newTeamData = req.body;
+
+        // Only validate transactionId if payment is required
+        if (settings.paymentRequired && !newTeamData.transactionId) {
+            return res.status(400).json({ message: 'Transaction ID is required when payment is enabled.' });
+        }
+
+        const newTeam = new Team(newTeamData);
         await newTeam.save();
         res.status(201).json({ message: 'Team registered successfully and is now waitlisted.' });
     } catch (error) {
-        // Add this line to log the full error on the server
         console.error("REGISTRATION ERROR:", error); 
-        res.status(400).json({ message: 'Registration failed. The team name might already be taken.', error: error.message });
+        res.status(400).json({ message: 'Registration failed. The team name or transaction ID might already be taken.', error: error.message });
     }
 });
 
@@ -135,6 +144,18 @@ router.put('/admin/teams/:id/approve', protect, async (req, res) => {
     }
 });
 
+router.delete('/admin/teams/:id', protect, async (req, res) => {
+    try {
+        const team = await Team.findByIdAndDelete(req.params.id);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+        res.json({ success: true, message: 'Team deleted successfully.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting team', error: error.message });
+    }
+});
+
 router.get('/admin/settings', protect, async (req, res) => {
     try {
         const settings = await Settings.findOne({ singleton: 'main' }) || {};
@@ -146,8 +167,12 @@ router.get('/admin/settings', protect, async (req, res) => {
 
 router.put('/admin/settings', protect, async (req, res) => {
     try {
-        const { maxTeams, membersPerTeam } = req.body;
-        await Settings.findOneAndUpdate({ singleton: 'main' }, { maxTeams, membersPerTeam }, { upsert: true });
+        const { maxTeams, membersPerTeam, paymentRequired } = req.body;
+        await Settings.findOneAndUpdate(
+            { singleton: 'main' }, 
+            { maxTeams, membersPerTeam, paymentRequired }, 
+            { upsert: true }
+        );
         res.json({ success: true, message: 'Settings updated successfully!' });
     } catch (error) {
         res.status(500).json({ message: 'Error updating settings' });

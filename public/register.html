@@ -69,16 +69,27 @@
                     </div>
                 </template>
                 
+                <hr style="margin: 30px 0;" />
+                <div class="payment-info" style="text-align: center; margin-bottom: 20px;">
+                    <h3>Payment Details</h3>
+                    <img src="/media/qr-code.png" alt="Payment QR Code" style="max-width: 250px;" />
+                    <p style="font-size: 1.2em; font-weight: bold; color: #333;">Amount: ₹100</p>
+                    <p style="font-size: 1em; color: #555;">UPI ID: 9494990433-2@ybl</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Transaction ID / UPI Reference No.</label>
+                    <input type="text" name="transactionId" required placeholder="Enter the UPI transaction id" />
+                </div>
+
                 <button type="submit" class="button-red">Register Team</button>
             </form>
         </div>
 
         <div id="success-view" class="form-container" style="display: none; text-align: center;">
             <h2>Registration Waitlisted!</h2>
-            <p>Thank you. Your team is now waitlisted for approval.</p>
-            <p>Please complete the payment by scanning the QR code below.</p>
-            <img src="/media/qr-code.png" alt="Payment QR Code" style="max-width: 250px; margin-top: 20px;" />
-            <br><br>
+            <p>Thank you for registering. Your team has been added to the waitlist and will be approved shortly.</p>
+            <br>
             <a href="/" class="button-red" style="width: auto;">Back to Home</a>
         </div>
     </main>

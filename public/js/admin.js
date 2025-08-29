@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Get references to DOM elements ---
     const teamsTbody = document.getElementById('teams-tbody');
     const settingsForm = document.getElementById('settings-form');
+    const paymentToggle = document.getElementById('paymentRequired'); // <-- NEW
     const exportButton = document.getElementById('export-csv-button');
     const modalOverlay = document.getElementById('details-modal-overlay');
     const modalTeamName = document.getElementById('modal-team-name');
@@ -52,14 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/admin/teams', { headers });
 
-            // If the token is invalid or expired, the server will send a 401 or 403 status
             if (response.status === 401 || response.status === 403) {
                  localStorage.removeItem('adminToken');
                  window.location.href = '/admin-login.html';
                  return;
             }
             const teams = await response.json();
-            teamsData = teams; // Store the fetched data for exporting and viewing details
+            teamsData = teams; // Store the fetched data
 
             teamsTbody.innerHTML = ''; // Clear existing table rows
             teams.forEach(team => {
@@ -73,7 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="button-red view-btn" data-id="${team._id}" style="background-color: #17a2b8; width: auto; padding: 8px 12px; font-size: 14px;">View</button>
                             ${team.status === 'waitlisted' ? 
                                 `<button class="button-red approve-btn" data-id="${team._id}" style="width: auto; padding: 8px 12px; font-size: 14px;">Approve</button>` : 
-                                '<span>Approved</span>'}
+                                '<span></span>'}
+                            <button class="button-red delete-btn" data-id="${team._id}" style="background-color: #dc3545; width: auto; padding: 8px 12px; font-size: 14px;">Delete</button>
                         </div>
                     </td>
                 `;
@@ -90,12 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const settings = await response.json();
             document.getElementById('maxTeams').value = settings.maxTeams || 50;
             document.getElementById('membersPerTeam').value = settings.membersPerTeam || 3;
+            // --- NEW: Set the toggle state from the database ---
+            paymentToggle.checked = settings.paymentRequired !== false; // Default to true if undefined
         } catch (error) {
             console.error('Failed to load settings:', error);
         }
     };
     
-    // Function to open and populate the details modal
     const openDetailsModal = (teamId) => {
         const team = teamsData.find(t => t._id === teamId);
         if (!team) return;
@@ -117,25 +119,25 @@ document.addEventListener('DOMContentLoaded', () => {
         modalOverlay.classList.add('active');
     };
 
-    // --- Function to load all initial data when the page opens ---
     const loadInitialData = () => {
         loadTeams();
         loadSettings();
     };
     
     // --- Event Listeners ---
-
-    // Listen for submissions on the settings form
     settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const maxTeams = document.getElementById('maxTeams').value;
         const membersPerTeam = document.getElementById('membersPerTeam').value;
+        // --- NEW: Get the current state of the toggle ---
+        const paymentRequired = paymentToggle.checked;
         
         try {
             await fetch('/api/admin/settings', {
                 method: 'PUT',
                 headers,
-                body: JSON.stringify({ maxTeams, membersPerTeam })
+                // --- NEW: Send the toggle state to the server ---
+                body: JSON.stringify({ maxTeams, membersPerTeam, paymentRequired })
             });
             alert('Settings saved successfully!');
         } catch (error) {
@@ -144,25 +146,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Listen for clicks inside the table body to handle "Approve" and "View" buttons
     teamsTbody.addEventListener('click', async (e) => {
-        const target = e.target.closest('button'); // Find the closest button element
+        const target = e.target.closest('button');
         if (!target) return;
 
+        const teamId = target.dataset.id;
+
         if (target.classList.contains('approve-btn')) {
-            const teamId = target.dataset.id;
             await fetch(`/api/admin/teams/${teamId}/approve`, {
                 method: 'PUT',
                 headers
             });
-            loadTeams(); // Refresh the teams list after approval
+            loadTeams();
         } else if (target.classList.contains('view-btn')) {
-            const teamId = target.dataset.id;
             openDetailsModal(teamId);
+        } else if (target.classList.contains('delete-btn')) {
+            if (confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
+                await fetch(`/api/admin/teams/${teamId}`, {
+                    method: 'DELETE',
+                    headers
+                });
+                loadTeams(); 
+            }
         }
     });
     
-    // Event listeners to close the modal
     modalCloseButton.addEventListener('click', () => modalOverlay.classList.remove('active'));
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) {
@@ -170,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Event listener for the Export to CSV button
     exportButton.addEventListener('click', () => {
         if (teamsData.length === 0) {
             alert('No teams to export!');
@@ -180,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const exportToCSV = (teams) => {
-        // Helper to handle commas and quotes in data
         const escapeCsvCell = (cell) => {
             if (cell == null) return '';
             const cellStr = String(cell);
@@ -211,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (member) {
                     row.push(escapeCsvCell(member.name), escapeCsvCell(member.sapId), escapeCsvCell(member.school), escapeCsvCell(member.course), escapeCsvCell(member.year), escapeCsvCell(member.email), escapeCsvCell(member.phone));
                 } else {
-                    row.push('', '', '', '', '', '', ''); // Fill empty cells
+                    row.push('', '', '', '', '', '', '');
                 }
             }
             return row.join(',');
@@ -230,6 +236,5 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     };
 
-    // --- Initial Load ---
     loadInitialData();
 });

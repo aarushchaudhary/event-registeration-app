@@ -3,27 +3,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessageEl = document.getElementById('error-message');
     const memberFormsContainer = document.getElementById('member-forms-container');
     const memberTemplate = document.getElementById('member-form-template');
+    // --- NEW: Get references to payment elements ---
+    const paymentSection = document.querySelector('.payment-info');
+    const transactionIdGroup = document.querySelector('input[name="transactionId"]').closest('.form-group');
+    const transactionIdInput = document.querySelector('input[name="transactionId"]');
 
     // --- Data for our dynamic dropdowns ---
     const schoolData = {
         'STME': {
-            courses: ['CSE-DS', 'CE'],
+            courses: ['B.Tech Computer Engineering', 'B. Tech. Computer Science and Engineering (Data Science)'],
             years: ['1st', '2nd', '3rd', '4th']
         },
         'SPTM': {
-            courses: ['PharmaTech'],
+            courses: ['B.Pharm + MBA (Pharma Tech)'],
             years: ['1st', '2nd', '3rd', '4th', '5th']
         },
         'SOL': {
-            courses: ['BBA LLB', 'BA LLB'],
+            courses: ['B.A., LL.B. (Hons.)', 'B.B.A., LL.B. (Hons.)'],
             years: ['1st', '2nd', '3rd', '4th', '5th']
         },
         'SOC': {
-            courses: ['BBA'],
-            years: ['1st', '2nd', '3rd']
+            courses: ['Bachelors in Commerce', 'Bachelors In Business Administration'],
+            years: ['1st', '2nd', '3rd', '4th']
         },
         'SBM': {
-            courses: ['MBA'],
+            courses: ['MBA (Master of Business Administration)'],
             years: ['1st', '2nd']
         }
     };
@@ -34,15 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const formClone = memberTemplate.content.cloneNode(true);
             
             const title = formClone.querySelector('.member-title');
-            title.textContent = `Member ${i} Details`;
+            if (title) { // Check if title exists to avoid errors
+                title.textContent = `Member ${i} Details`;
+            }
 
             // Add event listener to the new school dropdown
             const schoolSelect = formClone.querySelector('.school-select');
-            schoolSelect.addEventListener('change', (event) => {
-                const selectedSchool = event.target.value;
-                const memberSection = event.target.closest('.member-section');
-                populateDropdowns(selectedSchool, memberSection);
-            });
+            if (schoolSelect) { // Check if schoolSelect exists
+                schoolSelect.addEventListener('change', (event) => {
+                    const selectedSchool = event.target.value;
+                    const memberSection = event.target.closest('.member-section');
+                    populateDropdowns(selectedSchool, memberSection);
+                });
+            }
             
             memberFormsContainer.appendChild(formClone);
         }
@@ -50,9 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to populate Course and Year dropdowns
     const populateDropdowns = (school, memberSection) => {
+        if (!memberSection) return; // Exit if the section doesn't exist
         const dynamicFieldsContainer = memberSection.querySelector('.dynamic-fields-container');
         const courseSelect = memberSection.querySelector('.course-select');
         const yearSelect = memberSection.querySelector('.year-select');
+
+        if (!dynamicFieldsContainer || !courseSelect || !yearSelect) return;
 
         // Clear previous options
         courseSelect.innerHTML = '<option value="">-- Select a Course --</option>';
@@ -78,11 +89,25 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/stats');
             const data = await response.json();
-            const teamSize = data.membersPerTeam || 3; 
-            generateMemberForms(teamSize);
+            const teamSize = data.membersPerTeam || 0; 
+            if (teamSize > 0 && memberTemplate.content.children.length > 0) {
+                 generateMemberForms(teamSize);
+            }
+
+            // --- NEW: Show or hide payment section based on settings ---
+            if (data.paymentRequired) {
+                paymentSection.style.display = 'block';
+                transactionIdGroup.style.display = 'block';
+                transactionIdInput.required = true;
+            } else {
+                paymentSection.style.display = 'none';
+                transactionIdGroup.style.display = 'none';
+                transactionIdInput.required = false;
+            }
+
         } catch (error) {
-            console.error('Failed to load team settings, defaulting to 3 members.', error);
-            generateMemberForms(3);
+            console.error('Failed to load team settings.', error);
+            // Don't generate forms if settings fail to load or template is empty
         }
     };
 
@@ -96,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             teamName: formData.get('teamName'),
             teamLeaderName: formData.get('teamLeaderName'),
             teamLeaderPhone: formData.get('teamLeaderPhone'),
+            transactionId: formData.get('transactionId'),
             members: []
         };
 
@@ -122,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Registration failed. The team name may already exist.');
+                throw new Error(errorData.message || 'Registration failed. The team name or transaction ID might already be taken.');
             }
 
             document.getElementById('registration-view').style.display = 'none';
