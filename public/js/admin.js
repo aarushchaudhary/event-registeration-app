@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Get references to DOM elements ---
     const teamsTbody = document.getElementById('teams-tbody');
     const settingsForm = document.getElementById('settings-form');
-    const paymentToggle = document.getElementById('paymentRequired'); // <-- NEW
+    const paymentToggle = document.getElementById('paymentRequired');
     const exportButton = document.getElementById('export-csv-button');
     const modalOverlay = document.getElementById('details-modal-overlay');
     const modalTeamName = document.getElementById('modal-team-name');
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const settings = await response.json();
             document.getElementById('maxTeams').value = settings.maxTeams || 50;
             document.getElementById('membersPerTeam').value = settings.membersPerTeam || 3;
-            // --- NEW: Set the toggle state from the database ---
+            // --- Set the toggle state from the database ---
             paymentToggle.checked = settings.paymentRequired !== false; // Default to true if undefined
         } catch (error) {
             console.error('Failed to load settings:', error);
@@ -129,14 +129,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const maxTeams = document.getElementById('maxTeams').value;
         const membersPerTeam = document.getElementById('membersPerTeam').value;
-        // --- NEW: Get the current state of the toggle ---
         const paymentRequired = paymentToggle.checked;
         
         try {
             await fetch('/api/admin/settings', {
                 method: 'PUT',
                 headers,
-                // --- NEW: Send the toggle state to the server ---
                 body: JSON.stringify({ maxTeams, membersPerTeam, paymentRequired })
             });
             alert('Settings saved successfully!');

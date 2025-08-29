@@ -9,10 +9,29 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4; 
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+
+    /* === BACKGROUND IMAGE STYLES ADDED HERE === */
+
+    /* Fallback color in case the image fails to load */
+    background-color: #f4f4f4; 
+
+    /* Path to your image (adjust if your folder structure is different) */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/background.jpg');
+
+    /* Ensures the image covers the whole page */
+    background-size: cover;
+
+    /* Prevents the image from repeating */
+    background-repeat: no-repeat;
+
+    /* Keeps the image fixed in place during scroll */
+    background-attachment: fixed;
+
+    /* Centers the image */
+    background-position: center;
 }
 
 main {
@@ -424,4 +443,10 @@ main {
 .manage-container {
     margin: 20px auto; /* Centers the container horizontally */
     box-sizing: border-box; /* Ensures padding doesn't break the layout */
+}
+
+/* --- Homepage Centering Fix --- */
+.dashboard-center-content {
+    /* This pushes the content into the vertical center of the main area */
+    margin: auto;
 }
