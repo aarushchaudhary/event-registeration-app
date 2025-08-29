@@ -64,9 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
             teamsTbody.innerHTML = ''; // Clear existing table rows
             teams.forEach(team => {
                 const row = document.createElement('tr');
+                // This is the new, corrected code
                 row.innerHTML = `
                     <td>${team.teamName}</td>
-                    <td>${team.teamLeaderName} (${team.teamLeaderPhone})</td>
+                    <td>${team.teamLeaderName}</td>
+                    <td>${team.teamLeaderPhone}</td>
                     <td><span class="status-badge status-${team.status}">${team.status}</span></td>
                     <td>
                         <div class="action-buttons" style="flex-direction: row; gap: 10px;">
