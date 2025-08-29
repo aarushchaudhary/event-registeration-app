@@ -363,3 +363,65 @@ input:checked + .slider {
 input:checked + .slider:before {
     transform: translateX(26px);
 }
+
+/* =======================================================
+   Mobile Responsive Fixes
+   ======================================================= */
+@media (max-width: 768px) {
+
+    /* --- Header Adjustments --- */
+    .ribbon .site-title {
+        /* Hide the main title on small screens to make space */
+        display: none;
+    }
+
+    .header-right {
+        /* Reduce space between logout button and logo */
+        gap: 10px;
+    }
+
+    /* --- Form and Container Adjustments --- */
+    .form-container,
+    .manage-container {
+        /* Reduce side padding on mobile */
+        padding: 20px 15px;
+        margin: 10px;
+    }
+
+    /* --- Layout Adjustments for Form Rows --- */
+    .form-row {
+        /* Stack elements vertically instead of side-by-side */
+        flex-direction: column;
+        gap: 0;
+    }
+
+    /* --- Admin Dashboard Table Adjustments --- */
+    /* This makes the table scrollable horizontally if it's too wide */
+    .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 10px 8px;
+    }
+}
+
+/* =======================================================
+   Layout Fixes for Admin Page
+   ======================================================= */
+
+/* This ensures the main content area uses the full width and aligns content to the top */
+main {
+    align-items: flex-start; /* Aligns content to the top, not center */
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* This centers the containers and prevents them from overflowing on smaller screens */
+.manage-container {
+    margin: 20px auto; /* Centers the container horizontally */
+    box-sizing: border-box; /* Ensures padding doesn't break the layout */
+}
