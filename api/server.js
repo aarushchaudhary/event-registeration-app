@@ -67,17 +67,19 @@ const protect = async (req, res, next) => {
 // =======================================================
 router.get('/stats', async (req, res) => {
     try {
-        const settings = await Settings.findOne({ singleton: 'main' }) || { maxTeams: 50, membersPerTeam: 3, paymentRequired: true, registrationsOpen: true };
+        const settings = await Settings.findOne({ singleton: 'main' }) || {};
         const approvedTeamsCount = await Team.countDocuments({ status: 'approved' });
-        const seatsEmpty = settings.maxTeams - approvedTeamsCount;
+        const seatsEmpty = (settings.maxTeams || 50) - approvedTeamsCount;
 
         res.json({
             teamsRegistered: approvedTeamsCount,
             seatsEmpty: seatsEmpty < 0 ? 0 : seatsEmpty,
-            totalSeats: settings.maxTeams,
-            membersPerTeam: settings.membersPerTeam,
-            paymentRequired: settings.paymentRequired,
-            registrationsOpen: settings.registrationsOpen // <-- ADD THIS LINE
+            totalSeats: settings.maxTeams || 50,
+            membersPerTeam: settings.membersPerTeam || 3,
+            paymentRequired: settings.paymentRequired !== false,
+            registrationsOpen: settings.registrationsOpen !== false,
+            paymentAmount: settings.paymentAmount || null,
+            upiId: settings.upiId || null
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching stats', error: error.message });
@@ -180,10 +182,10 @@ router.get('/admin/settings', protect, async (req, res) => {
 
 router.put('/admin/settings', protect, async (req, res) => {
     try {
-        const { maxTeams, membersPerTeam, paymentRequired, registrationsOpen } = req.body;
+        const { maxTeams, membersPerTeam, paymentRequired, registrationsOpen, paymentAmount, upiId } = req.body;
         await Settings.findOneAndUpdate(
             { singleton: 'main' }, 
-            { maxTeams, membersPerTeam, paymentRequired, registrationsOpen }, 
+            { maxTeams, membersPerTeam, paymentRequired, registrationsOpen, paymentAmount, upiId }, 
             { upsert: true }
         );
         res.json({ success: true, message: 'Settings updated successfully!' });

@@ -13,10 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const siteTitle = document.querySelector('.site-title');
 
         if (logoutButton) {
-            // Make the logout button visible only on this page
             logoutButton.style.display = 'block'; 
-
-            // Add the click event listener for logging out
             logoutButton.addEventListener('click', () => {
                 localStorage.removeItem('adminToken');
                 window.location.href = '/admin-login.html';
@@ -24,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (siteTitle) {
-            // Change the main title to "Admin Dashboard"
             siteTitle.textContent = 'Admin Dashboard';
         }
     });
@@ -39,14 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const teamsTbody = document.getElementById('teams-tbody');
     const settingsForm = document.getElementById('settings-form');
     const paymentToggle = document.getElementById('paymentRequired');
-    const registrationsToggle = document.getElementById('registrationsOpen'); // <-- NEW
+    const registrationsToggle = document.getElementById('registrationsOpen');
     const exportButton = document.getElementById('export-csv-button');
     const modalOverlay = document.getElementById('details-modal-overlay');
     const modalTeamName = document.getElementById('modal-team-name');
     const modalTeamDetails = document.getElementById('modal-team-details');
     const modalCloseButton = document.querySelector('.close-button');
     
-    // A variable to hold our teams data for reuse
     let teamsData = []; 
     
     // --- Functions to fetch and render data ---
@@ -60,13 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
                  return;
             }
             const teams = await response.json();
-            teamsData = teams; // Store the fetched data
+            teamsData = teams; 
 
-            teamsTbody.innerHTML = ''; // Clear existing table rows
+            teamsTbody.innerHTML = ''; 
             teams.forEach(team => {
                 const row = document.createElement('tr');
-                // --- CORRECTED to match the 4 columns in your HTML ---
-                // This is the new, corrected code
                 row.innerHTML = `
                     <td>${team.teamName}</td>
                     <td>${team.teamLeaderName}</td>
@@ -95,8 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const settings = await response.json();
             document.getElementById('maxTeams').value = settings.maxTeams || 50;
             document.getElementById('membersPerTeam').value = settings.membersPerTeam || 3;
+            document.getElementById('paymentAmount').value = settings.paymentAmount || 99; // <-- NEW
+            document.getElementById('upiId').value = settings.upiId || ''; // <-- NEW
             paymentToggle.checked = settings.paymentRequired !== false;
-            registrationsToggle.checked = settings.registrationsOpen !== false; // <-- NEW
+            registrationsToggle.checked = settings.registrationsOpen !== false;
         } catch (error) {
             console.error('Failed to load settings:', error);
         }
@@ -131,16 +126,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const maxTeams = document.getElementById('maxTeams').value;
-        const membersPerTeam = document.getElementById('membersPerTeam').value;
-        const paymentRequired = paymentToggle.checked;
-        const registrationsOpen = registrationsToggle.checked; // <-- NEW
+        // --- REFACTORED to a single settings object ---
+        const settingsData = {
+            maxTeams: document.getElementById('maxTeams').value,
+            membersPerTeam: document.getElementById('membersPerTeam').value,
+            paymentAmount: document.getElementById('paymentAmount').value, // <-- NEW
+            upiId: document.getElementById('upiId').value, // <-- NEW
+            paymentRequired: paymentToggle.checked,
+            registrationsOpen: registrationsToggle.checked
+        };
         
         try {
             await fetch('/api/admin/settings', {
                 method: 'PUT',
                 headers,
-                body: JSON.stringify({ maxTeams, membersPerTeam, paymentRequired, registrationsOpen }) // <-- NEW
+                body: JSON.stringify(settingsData)
             });
             alert('Settings saved successfully!');
         } catch (error) {
@@ -156,19 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const teamId = target.dataset.id;
 
         if (target.classList.contains('approve-btn')) {
-            await fetch(`/api/admin/teams/${teamId}/approve`, {
-                method: 'PUT',
-                headers
-            });
+            await fetch(`/api/admin/teams/${teamId}/approve`, { method: 'PUT', headers });
             loadTeams();
         } else if (target.classList.contains('view-btn')) {
             openDetailsModal(teamId);
         } else if (target.classList.contains('delete-btn')) {
             if (confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
-                await fetch(`/api/admin/teams/${teamId}`, {
-                    method: 'DELETE',
-                    headers
-                });
+                await fetch(`/api/admin/teams/${teamId}`, { method: 'DELETE', headers });
                 loadTeams(); 
             }
         }

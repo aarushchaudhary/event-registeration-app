@@ -6,7 +6,9 @@ const SettingsSchema = new mongoose.Schema({
     maxTeams: { type: Number, default: 50 },
     membersPerTeam: { type: Number, default: 3 },
     paymentRequired: { type: Boolean, default: true },
-    registrationsOpen: { type: Boolean, default: true }
+    registrationsOpen: { type: Boolean, default: true },
+    paymentAmount: { type: Number, default: null },
+    upiId: { type: String, default: null }
 });
 
 module.exports = mongoose.model('Settings', SettingsSchema);

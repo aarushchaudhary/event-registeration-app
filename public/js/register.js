@@ -3,10 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessageEl = document.getElementById('error-message');
     const memberFormsContainer = document.getElementById('member-forms-container');
     const memberTemplate = document.getElementById('member-form-template');
-    // --- NEW: Get references to payment elements ---
     const paymentSection = document.querySelector('.payment-info');
     const transactionIdGroup = document.querySelector('input[name="transactionId"]').closest('.form-group');
     const transactionIdInput = document.querySelector('input[name="transactionId"]');
+    const paymentAmountEl = document.getElementById('payment-amount'); // <-- NEW
+    const upiIdEl = document.getElementById('upi-id'); // <-- NEW
 
     // --- Data for our dynamic dropdowns ---
     const schoolData = {
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
             years: ['1st', '2nd', '3rd', '4th', '5th']
         },
         'SOC': {
-            courses: ['Bachelors in Commerce', 'Bachelors In Business Administration'],
+            courses: ['B.Com (Bachelors in Commerce)', 'B.B.A. (Bachelors In Business Administration)'],
             years: ['1st', '2nd', '3rd', '4th']
         },
         'SBM': {
@@ -42,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 title.textContent = `Member ${i} Details`;
             }
 
-            // Add event listener to the new school dropdown
             const schoolSelect = formClone.querySelector('.school-select');
             if (schoolSelect) { // Check if schoolSelect exists
                 schoolSelect.addEventListener('change', (event) => {
@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Function to populate Course and Year dropdowns
     const populateDropdowns = (school, memberSection) => {
         if (!memberSection) return; // Exit if the section doesn't exist
         const dynamicFieldsContainer = memberSection.querySelector('.dynamic-fields-container');
@@ -65,12 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!dynamicFieldsContainer || !courseSelect || !yearSelect) return;
 
-        // Clear previous options
         courseSelect.innerHTML = '<option value="">-- Select a Course --</option>';
         yearSelect.innerHTML = '<option value="">-- Select a Year --</option>';
 
         if (school && schoolData[school]) {
-            // A school is selected, so populate fields and show them
             const data = schoolData[school];
             data.courses.forEach(course => {
                 courseSelect.innerHTML += `<option value="${course}">${course}</option>`;
@@ -78,9 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
             data.years.forEach(year => {
                 yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
             });
-            dynamicFieldsContainer.style.display = 'flex'; // Show the dropdowns
+            dynamicFieldsContainer.style.display = 'flex';
         } else {
-            // No school is selected, so hide the fields
             dynamicFieldsContainer.style.display = 'none';
         }
     };
@@ -94,7 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
                  generateMemberForms(teamSize);
             }
 
-            // --- NEW: Show or hide payment section based on settings ---
+            // --- UPDATED: Set payment details and show/hide section ---
+            paymentAmountEl.textContent = data.paymentAmount;
+            upiIdEl.textContent = data.upiId;
+
             if (data.paymentRequired) {
                 paymentSection.style.display = 'block';
                 transactionIdGroup.style.display = 'block';
@@ -107,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Failed to load team settings.', error);
-            // Don't generate forms if settings fail to load or template is empty
         }
     };
 
