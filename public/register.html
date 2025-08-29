@@ -37,7 +37,7 @@
                         <h4 class="member-title">Member Details</h4>
                         <div class="form-row">
                             <div class="form-group"><label>Full Name</label><input type="text" name="name" required /></div>
-                            <div class="form-group"><label>SAP ID</label><input type="text" name="sapId" required /></div>
+                            <div class="form-group"><label>SAP ID</label><input type="text" name="sapId" required pattern="[0-9]{11}" title="SAP ID must be exactly 11 digits." /></div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -64,7 +64,7 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group"><label>Email</label><input type="email" name="email" required /></div>
-                            <div class="form-group"><label>Phone No.</label><input type="tel" name="phone" required /></div>
+                            <div class="form-group"><label>Phone No.</label><input type="tel" name="phone" required pattern="[0-9]{10}" title="Phone number must be exactly 10 digits." /></div>
                         </div>
                     </div>
                 </template>
