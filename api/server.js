@@ -67,7 +67,7 @@ const protect = async (req, res, next) => {
 // =======================================================
 router.get('/stats', async (req, res) => {
     try {
-        const settings = await Settings.findOne({ singleton: 'main' }) || { maxTeams: 50, membersPerTeam: 3, paymentRequired: true };
+        const settings = await Settings.findOne({ singleton: 'main' }) || { maxTeams: 50, membersPerTeam: 3, paymentRequired: true, registrationsOpen: true };
         const approvedTeamsCount = await Team.countDocuments({ status: 'approved' });
         const seatsEmpty = settings.maxTeams - approvedTeamsCount;
 
@@ -76,7 +76,8 @@ router.get('/stats', async (req, res) => {
             seatsEmpty: seatsEmpty < 0 ? 0 : seatsEmpty,
             totalSeats: settings.maxTeams,
             membersPerTeam: settings.membersPerTeam,
-            paymentRequired: settings.paymentRequired // <-- ADD THIS LINE
+            paymentRequired: settings.paymentRequired,
+            registrationsOpen: settings.registrationsOpen // <-- ADD THIS LINE
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching stats', error: error.message });
@@ -86,12 +87,15 @@ router.get('/stats', async (req, res) => {
 // --- UPDATED to conditionally require transactionId ---
 router.post('/register', async (req, res) => {
     try {
-        const settings = await Settings.findOne({ singleton: 'main' }) || { paymentRequired: true };
-        const newTeamData = req.body;
+        const settings = await Settings.findOne({ singleton: 'main' }) || { paymentRequired: true, registrationsOpen: true };
 
-        // Only validate transactionId if payment is required
+        if (!settings.registrationsOpen) {
+            return res.status(403).json({ message: 'Registrations are currently closed.' });
+        }
+        
+        const newTeamData = req.body;
         if (settings.paymentRequired && !newTeamData.transactionId) {
-            return res.status(400).json({ message: 'Transaction ID is required when payment is enabled.' });
+            return res.status(400).json({ message: 'Transaction ID is required.' });
         }
 
         const newTeam = new Team(newTeamData);
@@ -176,10 +180,10 @@ router.get('/admin/settings', protect, async (req, res) => {
 
 router.put('/admin/settings', protect, async (req, res) => {
     try {
-        const { maxTeams, membersPerTeam, paymentRequired } = req.body;
+        const { maxTeams, membersPerTeam, paymentRequired, registrationsOpen } = req.body;
         await Settings.findOneAndUpdate(
             { singleton: 'main' }, 
-            { maxTeams, membersPerTeam, paymentRequired }, 
+            { maxTeams, membersPerTeam, paymentRequired, registrationsOpen }, 
             { upsert: true }
         );
         res.json({ success: true, message: 'Settings updated successfully!' });

@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const seatsEmptyEl = document.getElementById('seats-empty');
     const totalSeatsEl = document.getElementById('total-seats');
     const countdownEl = document.getElementById('countdown');
+    const registerButtonContainer = document.getElementById('register-button-container'); // <-- NEW
 
     // --- 1. Fetch Stats ---
     fetch('/api/stats')
@@ -11,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
             teamsRegisteredEl.textContent = data.teamsRegistered;
             seatsEmptyEl.textContent = data.seatsEmpty;
             totalSeatsEl.textContent = data.totalSeats;
+
+            // --- NEW: Show or hide the register button ---
+            if (data.registrationsOpen) {
+                registerButtonContainer.style.display = 'block';
+            } else {
+                registerButtonContainer.innerHTML = '<p style="font-weight: bold; color: #e60000;">Registrations are currently closed.</p>';
+            }
         })
         .catch(error => console.error('Error fetching stats:', error));
 

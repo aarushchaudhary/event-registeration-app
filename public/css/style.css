@@ -19,7 +19,7 @@ body {
     background-color: #f4f4f4; 
 
     /* Path to your image (adjust if your folder structure is different) */
-    background-image: url('../images/background.jpg');
+    background-image: url('../media/background.jpg');
 
     /* Ensures the image covers the whole page */
     background-size: cover;

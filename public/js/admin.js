@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const teamsTbody = document.getElementById('teams-tbody');
     const settingsForm = document.getElementById('settings-form');
     const paymentToggle = document.getElementById('paymentRequired');
+    const registrationsToggle = document.getElementById('registrationsOpen'); // <-- NEW
     const exportButton = document.getElementById('export-csv-button');
     const modalOverlay = document.getElementById('details-modal-overlay');
     const modalTeamName = document.getElementById('modal-team-name');
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             teamsTbody.innerHTML = ''; // Clear existing table rows
             teams.forEach(team => {
                 const row = document.createElement('tr');
+                // --- CORRECTED to match the 4 columns in your HTML ---
                 // This is the new, corrected code
                 row.innerHTML = `
                     <td>${team.teamName}</td>
@@ -93,8 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const settings = await response.json();
             document.getElementById('maxTeams').value = settings.maxTeams || 50;
             document.getElementById('membersPerTeam').value = settings.membersPerTeam || 3;
-            // --- Set the toggle state from the database ---
-            paymentToggle.checked = settings.paymentRequired !== false; // Default to true if undefined
+            paymentToggle.checked = settings.paymentRequired !== false;
+            registrationsToggle.checked = settings.registrationsOpen !== false; // <-- NEW
         } catch (error) {
             console.error('Failed to load settings:', error);
         }
@@ -132,12 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxTeams = document.getElementById('maxTeams').value;
         const membersPerTeam = document.getElementById('membersPerTeam').value;
         const paymentRequired = paymentToggle.checked;
+        const registrationsOpen = registrationsToggle.checked; // <-- NEW
         
         try {
             await fetch('/api/admin/settings', {
                 method: 'PUT',
                 headers,
-                body: JSON.stringify({ maxTeams, membersPerTeam, paymentRequired })
+                body: JSON.stringify({ maxTeams, membersPerTeam, paymentRequired, registrationsOpen }) // <-- NEW
             });
             alert('Settings saved successfully!');
         } catch (error) {
