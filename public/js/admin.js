@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const siteTitle = document.querySelector('.site-title');
 
         if (logoutButton) {
-            logoutButton.style.display = 'block'; 
+            logoutButton.style.display = 'block';
             logoutButton.addEventListener('click', () => {
                 localStorage.removeItem('adminToken');
                 window.location.href = '/admin-login.html';
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTeamDetails = document.getElementById('modal-team-details');
     const modalCloseButton = document.querySelector('.close-button');
     
-    let teamsData = []; 
+    let teamsData = [];
     
     // --- Functions to fetch and render data ---
     const loadTeams = async () => {
@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
                  return;
             }
             const teams = await response.json();
-            teamsData = teams; 
+            teamsData = teams;
 
-            teamsTbody.innerHTML = ''; 
+            teamsTbody.innerHTML = '';
             teams.forEach(team => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -97,12 +97,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
+    // --- UPDATED to show Transaction ID ---
     const openDetailsModal = (teamId) => {
         const team = teamsData.find(t => t._id === teamId);
         if (!team) return;
 
         modalTeamName.textContent = team.teamName;
         
+        // Add Transaction ID if it exists
+        let transactionHtml = '';
+        if (team.transactionId) {
+            transactionHtml = `<h3>Transaction ID</h3><p>${team.transactionId}</p>`;
+        }
+
         let membersHtml = '<h3>Team Members</h3><ul>';
         team.members.forEach((member, index) => {
             membersHtml += `
@@ -114,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         membersHtml += '</ul>';
         
-        modalTeamDetails.innerHTML = membersHtml;
+        modalTeamDetails.innerHTML = transactionHtml + membersHtml;
         modalOverlay.classList.add('active');
     };
 
@@ -183,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportToCSV(teamsData);
     });
 
+    // --- UPDATED to include Transaction ID in the export ---
     const exportToCSV = (teams) => {
         const escapeCsvCell = (cell) => {
             if (cell == null) return '';
@@ -195,17 +203,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const maxMembers = Math.max(0, ...teams.map(team => team.members.length));
         
-        let headers = ['Team Name', 'Team Leader Name', 'Team Leader Phone', 'Status', 'Registration Date'];
+        // Add "Transaction ID" to the header row
+        let headers = ['Team Name', 'Team Leader Name', 'Team Leader Phone', 'Status', 'Transaction ID', 'Registration Date'];
         for (let i = 1; i <= maxMembers; i++) {
             headers.push(`Member ${i} Name`, `Member ${i} SAP ID`, `Member ${i} School`, `Member ${i} Course`, `Member ${i} Year`, `Member ${i} Email`, `Member ${i} Phone`);
         }
 
         const rows = teams.map(team => {
+            // Add the transactionId to each data row
             const row = [
                 escapeCsvCell(team.teamName),
                 escapeCsvCell(team.teamLeaderName),
                 escapeCsvCell(team.teamLeaderPhone),
                 escapeCsvCell(team.status),
+                escapeCsvCell(team.transactionId),
                 escapeCsvCell(new Date(team.registrationDate).toLocaleString())
             ];
             

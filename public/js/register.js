@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
             years: ['1st', '2nd', '3rd', '4th', '5th']
         },
         'SOC': {
-            courses: ['B.Com (Bachelors in Commerce)', 'B.B.A. (Bachelors In Business Administration)'],
+            courses: ['B.B.A. (Bachelors In Business Administration)'],
             years: ['1st', '2nd', '3rd', '4th']
         },
         'SBM': {
