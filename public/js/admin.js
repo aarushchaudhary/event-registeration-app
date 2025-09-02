@@ -1,13 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('adminToken');
 
-    // 1. Protect the page: If no token is found, redirect to the login page immediately.
     if (!token) {
         window.location.href = '/admin-login.html';
-        return; // Stop executing the rest of the script
+        return;
     }
 
-    // --- Wait for the header to be loaded by main.js, then modify it ---
     document.addEventListener('headerLoaded', () => {
         const logoutButton = document.getElementById('logout-button');
         const siteTitle = document.querySelector('.site-title');
@@ -25,13 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Setup for authenticated API requests ---
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
     };
 
-    // --- Get references to DOM elements ---
     const teamsTbody = document.getElementById('teams-tbody');
     const settingsForm = document.getElementById('settings-form');
     const paymentToggle = document.getElementById('paymentRequired');
@@ -44,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let teamsData = [];
     
-    // --- Functions to fetch and render data ---
     const loadTeams = async () => {
         try {
             const response = await fetch('/api/admin/teams', { headers });
@@ -88,8 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const settings = await response.json();
             document.getElementById('maxTeams').value = settings.maxTeams || 50;
             document.getElementById('membersPerTeam').value = settings.membersPerTeam || 3;
-            document.getElementById('paymentAmount').value = settings.paymentAmount || 99; // <-- NEW
-            document.getElementById('upiId').value = settings.upiId || ''; // <-- NEW
+            document.getElementById('paymentAmount').value = settings.paymentAmount || 99;
+            document.getElementById('upiId').value = settings.upiId || '';
             paymentToggle.checked = settings.paymentRequired !== false;
             registrationsToggle.checked = settings.registrationsOpen !== false;
         } catch (error) {
@@ -97,17 +92,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // --- UPDATED to show Transaction ID ---
     const openDetailsModal = (teamId) => {
         const team = teamsData.find(t => t._id === teamId);
         if (!team) return;
 
         modalTeamName.textContent = team.teamName;
         
-        // Add Transaction ID if it exists
         let transactionHtml = '';
         if (team.transactionId) {
             transactionHtml = `<h3>Transaction ID</h3><p>${team.transactionId}</p>`;
+        }
+
+        let screenshotHtml = '';
+        if (team.paymentScreenshotUrl) {
+            screenshotHtml = `
+                <h3>Payment Screenshot</h3>
+                <a href="${team.paymentScreenshotUrl}" target="_blank" rel="noopener noreferrer">
+                    <img src="${team.paymentScreenshotUrl}?tr=w-400" alt="Payment Screenshot" style="max-width: 100%; border-radius: 8px;" />
+                </a>
+                <br/>
+                <a href="${team.paymentScreenshotUrl}" download target="_blank" class="button-red" style="display: inline-block; margin-top: 10px; width: auto; padding: 8px 16px;">Download</a>
+            `;
+        } else {
+            screenshotHtml = `<h3>Payment Screenshot</h3><p>No screenshot was uploaded.</p>`;
         }
 
         let membersHtml = '<h3>Team Members</h3><ul>';
@@ -121,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         membersHtml += '</ul>';
         
-        modalTeamDetails.innerHTML = transactionHtml + membersHtml;
+        modalTeamDetails.innerHTML = transactionHtml + screenshotHtml + membersHtml;
         modalOverlay.classList.add('active');
     };
 
@@ -130,15 +137,13 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
     };
     
-    // --- Event Listeners ---
     settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        // --- REFACTORED to a single settings object ---
         const settingsData = {
             maxTeams: document.getElementById('maxTeams').value,
             membersPerTeam: document.getElementById('membersPerTeam').value,
-            paymentAmount: document.getElementById('paymentAmount').value, // <-- NEW
-            upiId: document.getElementById('upiId').value, // <-- NEW
+            paymentAmount: document.getElementById('paymentAmount').value,
+            upiId: document.getElementById('upiId').value,
             paymentRequired: paymentToggle.checked,
             registrationsOpen: registrationsToggle.checked
         };
@@ -190,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
         exportToCSV(teamsData);
     });
 
-    // --- UPDATED to include Transaction ID in the export ---
     const exportToCSV = (teams) => {
         const escapeCsvCell = (cell) => {
             if (cell == null) return '';
@@ -203,20 +207,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const maxMembers = Math.max(0, ...teams.map(team => team.members.length));
         
-        // Add "Transaction ID" to the header row
-        let headers = ['Team Name', 'Team Leader Name', 'Team Leader Phone', 'Status', 'Transaction ID', 'Registration Date'];
+        let headers = ['Team Name', 'Team Leader Name', 'Team Leader Phone', 'Status', 'Transaction ID', 'Screenshot URL', 'Registration Date'];
         for (let i = 1; i <= maxMembers; i++) {
             headers.push(`Member ${i} Name`, `Member ${i} SAP ID`, `Member ${i} School`, `Member ${i} Course`, `Member ${i} Year`, `Member ${i} Email`, `Member ${i} Phone`);
         }
 
         const rows = teams.map(team => {
-            // Add the transactionId to each data row
             const row = [
                 escapeCsvCell(team.teamName),
                 escapeCsvCell(team.teamLeaderName),
                 escapeCsvCell(team.teamLeaderPhone),
                 escapeCsvCell(team.status),
                 escapeCsvCell(team.transactionId),
+                escapeCsvCell(team.paymentScreenshotUrl),
                 escapeCsvCell(new Date(team.registrationDate).toLocaleString())
             ];
             

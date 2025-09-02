@@ -8,6 +8,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs'); // <-- IMPORTANT: Add bcryptjs
 const path = require('path');
 const serverless = require('serverless-http');
+const multer = require('multer'); // <-- ADD THIS LINE
+const ImageKit = require('imagekit'); // <-- ADD THIS LINE
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // Import Mongoose models
@@ -20,6 +22,16 @@ const Admin = require('./models/Admin'); // <-- Your new Admin model
 // =======================================================
 const app = express();
 const router = express.Router();
+
+// --- IMAGEKIT INITIALIZATION ---
+const imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
+});
+
+// --- MULTER SETUP (for handling file uploads in memory) ---
+const upload = multer({ storage: multer.memoryStorage() });
 
 // =======================================================
 //  Middleware
@@ -86,6 +98,25 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// --- NEW UPLOAD ENDPOINT ---
+router.post('/upload', upload.single('paymentScreenshot'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded.' });
+    }
+
+    try {
+        const response = await imagekit.upload({
+            file: req.file.buffer,
+            fileName: `${Date.now()}_${req.file.originalname}`,
+            folder: '/event-registrations/'
+        });
+        res.json({ url: response.url });
+    } catch (error) {
+        console.error("ImageKit Upload Error:", error);
+        res.status(500).json({ message: 'Failed to upload image.', error: error.message });
+    }
+});
+
 // --- UPDATED to conditionally require transactionId ---
 router.post('/register', async (req, res) => {
     try {
@@ -100,6 +131,7 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ message: 'Transaction ID is required.' });
         }
 
+        // The paymentScreenshotUrl is now part of newTeamData
         const newTeam = new Team(newTeamData);
         await newTeam.save();
         res.status(201).json({ message: 'Team registered successfully and is now waitlisted.' });

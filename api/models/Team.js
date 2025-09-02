@@ -14,7 +14,8 @@ const TeamSchema = new mongoose.Schema({
     teamName: { type: String, required: true, unique: true },
     teamLeaderName: { type: String, required: true },
     teamLeaderPhone: { type: String, required: true },
-    transactionId: { type: String, required: true, unique: true }, // <-- ADD THIS LINE
+    transactionId: { type: String, required: true, unique: true },
+    paymentScreenshotUrl: { type: String, required: false }, // <-- ADD THIS LINE
     members: [MemberSchema],
     status: {
         type: String,

@@ -6,10 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentSection = document.querySelector('.payment-info');
     const transactionIdGroup = document.querySelector('input[name="transactionId"]').closest('.form-group');
     const transactionIdInput = document.querySelector('input[name="transactionId"]');
-    const paymentAmountEl = document.getElementById('payment-amount'); // <-- NEW
-    const upiIdEl = document.getElementById('upi-id'); // <-- NEW
+    const paymentAmountEl = document.getElementById('payment-amount');
+    const upiIdEl = document.getElementById('upi-id');
 
-    // --- Data for our dynamic dropdowns ---
     const schoolData = {
         'STME': {
             courses: ['B.Tech Computer Engineering', 'B. Tech. Computer Science and Engineering (Data Science)'],
@@ -39,12 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const formClone = memberTemplate.content.cloneNode(true);
             
             const title = formClone.querySelector('.member-title');
-            if (title) { // Check if title exists to avoid errors
+            if (title) {
                 title.textContent = `Member ${i} Details`;
             }
 
             const schoolSelect = formClone.querySelector('.school-select');
-            if (schoolSelect) { // Check if schoolSelect exists
+            if (schoolSelect) {
                 schoolSelect.addEventListener('change', (event) => {
                     const selectedSchool = event.target.value;
                     const memberSection = event.target.closest('.member-section');
@@ -57,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const populateDropdowns = (school, memberSection) => {
-        if (!memberSection) return; // Exit if the section doesn't exist
+        if (!memberSection) return;
         const dynamicFieldsContainer = memberSection.querySelector('.dynamic-fields-container');
         const courseSelect = memberSection.querySelector('.course-select');
         const yearSelect = memberSection.querySelector('.year-select');
@@ -90,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  generateMemberForms(teamSize);
             }
 
-            // --- UPDATED: Set payment details and show/hide section ---
             paymentAmountEl.textContent = data.paymentAmount;
             upiIdEl.textContent = data.upiId;
 
@@ -109,10 +107,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // The form submission logic
     form.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         errorMessageEl.textContent = '';
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Registering...';
+
+        const screenshotInput = form.querySelector('input[name="paymentScreenshot"]');
+        const screenshotFile = screenshotInput.files[0];
+        let screenshotUrl = '';
+
+        if (paymentSection.style.display !== 'none' && screenshotFile) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('paymentScreenshot', screenshotFile);
+
+            try {
+                errorMessageEl.textContent = 'Uploading screenshot...';
+                const uploadResponse = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadFormData,
+                });
+
+                if (!uploadResponse.ok) {
+                    const errData = await uploadResponse.json();
+                    throw new Error(errData.message || 'Screenshot upload failed.');
+                }
+                const uploadData = await uploadResponse.json();
+                screenshotUrl = uploadData.url;
+                errorMessageEl.textContent = 'Screenshot uploaded. Submitting registration...';
+
+            } catch (error) {
+                errorMessageEl.textContent = error.message;
+                submitButton.disabled = false;
+                submitButton.textContent = 'Register Team';
+                return;
+            }
+        }
 
         const formData = new FormData(form);
         const teamData = {
@@ -120,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             teamLeaderName: formData.get('teamLeaderName'),
             teamLeaderPhone: formData.get('teamLeaderPhone'),
             transactionId: formData.get('transactionId'),
+            paymentScreenshotUrl: screenshotUrl,
             members: []
         };
 
@@ -154,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             errorMessageEl.textContent = error.message;
+            submitButton.disabled = false;
+            submitButton.textContent = 'Register Team';
         }
     });
     
